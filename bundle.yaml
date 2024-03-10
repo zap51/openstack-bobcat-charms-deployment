@@ -3,8 +3,6 @@ applications:
   ceph-mon:
     charm: ceph-mon
     channel: reef/stable
-    resources:
-      alert-rules: 1
     num_units: 3
     to:
     - lxd:0
@@ -26,12 +24,6 @@ applications:
     options:
       osd-devices: /dev/vdb /dev/vdc
     constraints: arch=amd64 tags=compute
-    storage:
-      bluestore-db: loop,1024M
-      bluestore-wal: loop,1024M
-      cache-devices: loop,10240M
-      osd-devices: loop,1024M
-      osd-journals: loop,1024M
   ceph-radosgw:
     charm: ceph-radosgw
     channel: reef/stable
@@ -42,8 +34,6 @@ applications:
   cinder:
     charm: cinder
     channel: 2023.2/stable
-    resources:
-      policyd-override: 0
     num_units: 1
     to:
     - lxd:1
@@ -65,8 +55,6 @@ applications:
   glance:
     charm: glance
     channel: 2023.2/stable
-    resources:
-      policyd-override: 0
     num_units: 1
     to:
     - lxd:3
@@ -77,8 +65,6 @@ applications:
   keystone:
     charm: keystone
     channel: 2023.2/stable
-    resources:
-      policyd-override: 0
     num_units: 1
     to:
     - lxd:0
@@ -89,8 +75,6 @@ applications:
   mysql-innodb-cluster:
     charm: mysql-innodb-cluster
     channel: 8.0/stable
-    resources:
-      mysql-shell: 0
     num_units: 3
     to:
     - lxd:0
@@ -103,8 +87,6 @@ applications:
   neutron-api:
     charm: neutron-api
     channel: 2023.2/stable
-    resources:
-      policyd-override: 0
     num_units: 1
     to:
     - lxd:1
@@ -121,8 +103,6 @@ applications:
   nova-cloud-controller:
     charm: nova-cloud-controller
     channel: 2023.2/stable
-    resources:
-      policyd-override: 0
     num_units: 1
     to:
     - lxd:3
@@ -151,9 +131,6 @@ applications:
   openstack-dashboard:
     charm: openstack-dashboard
     channel: 2023.2/stable
-    resources:
-      policyd-override: 0
-      theme: 0
     num_units: 1
     to:
     - lxd:2
@@ -193,9 +170,6 @@ applications:
   vault:
     charm: vault
     channel: 1.8/stable
-    resources:
-      core: 0
-      vault: 0
     num_units: 1
     to:
     - lxd:3
