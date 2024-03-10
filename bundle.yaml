@@ -1,0 +1,318 @@
+series: jammy
+applications:
+  ceph-mon:
+    charm: ceph-mon
+    channel: reef/stable
+    resources:
+      alert-rules: 1
+    num_units: 3
+    to:
+    - lxd:0
+    - lxd:1
+    - lxd:2
+    options:
+      expected-osd-count: 4
+      monitor-count: 3
+    constraints: arch=amd64
+  ceph-osd:
+    charm: ceph-osd
+    channel: reef/stable
+    num_units: 4
+    to:
+    - "0"
+    - "1"
+    - "2"
+    - "3"
+    options:
+      osd-devices: /dev/vdb /dev/vdc
+    constraints: arch=amd64 tags=compute
+  ceph-radosgw:
+    charm: ceph-radosgw
+    channel: reef/stable
+    num_units: 1
+    to:
+    - lxd:0
+    constraints: arch=amd64
+  cinder:
+    charm: cinder
+    channel: 2023.2/stable
+    resources:
+      policyd-override: 0
+    num_units: 1
+    to:
+    - lxd:1
+    options:
+      block-device: None
+      glance-api-version: 2
+    constraints: arch=amd64
+    storage:
+      block-devices: loop,10240M
+  cinder-ceph:
+    charm: cinder-ceph
+    channel: 2023.2/stable
+  cinder-mysql-router:
+    charm: mysql-router
+    channel: 8.0/stable
+  dashboard-mysql-router:
+    charm: mysql-router
+    channel: 8.0/stable
+  glance:
+    charm: glance
+    channel: 2023.2/stable
+    resources:
+      policyd-override: 0
+    num_units: 1
+    to:
+    - lxd:3
+    constraints: arch=amd64
+  glance-mysql-router:
+    charm: mysql-router
+    channel: 8.0/stable
+  keystone:
+    charm: keystone
+    channel: 2023.2/stable
+    resources:
+      policyd-override: 0
+    num_units: 1
+    to:
+    - lxd:0
+    constraints: arch=amd64
+  keystone-mysql-router:
+    charm: mysql-router
+    channel: 8.0/stable
+  mysql-innodb-cluster:
+    charm: mysql-innodb-cluster
+    channel: 8.0/stable
+    resources:
+      mysql-shell: 0
+    num_units: 3
+    to:
+    - lxd:0
+    - lxd:1
+    - lxd:2
+    constraints: arch=amd64
+  ncc-mysql-router:
+    charm: mysql-router
+    channel: 8.0/stable
+  neutron-api:
+    charm: neutron-api
+    channel: 2023.2/stable
+    resources:
+      policyd-override: 0
+    num_units: 1
+    to:
+    - lxd:1
+    options:
+      flat-network-providers: physnet1
+      neutron-security-groups: true
+    constraints: arch=amd64
+  neutron-api-mysql-router:
+    charm: mysql-router
+    channel: 8.0/stable
+  neutron-api-plugin-ovn:
+    charm: neutron-api-plugin-ovn
+    channel: 2023.2/stable
+  nova-cloud-controller:
+    charm: nova-cloud-controller
+    channel: 2023.2/stable
+    resources:
+      policyd-override: 0
+    num_units: 1
+    to:
+    - lxd:3
+    options:
+      console-access-protocol: novnc
+      network-manager: Neutron
+    constraints: arch=amd64
+  nova-compute:
+    charm: nova-compute
+    channel: 2023.2/stable
+    num_units: 3
+    to:
+    - "1"
+    - "2"
+    - "3"
+    options:
+      config-flags: default_ephemeral_format=ext4
+      enable-live-migration: true
+      enable-resize: true
+      migration-auth-type: ssh
+      virt-type: qemu
+    constraints: arch=amd64
+    storage:
+      ephemeral-device: loop,10240M
+  openstack-dashboard:
+    charm: openstack-dashboard
+    channel: 2023.2/stable
+    resources:
+      policyd-override: 0
+      theme: 0
+    num_units: 1
+    to:
+    - lxd:2
+    constraints: arch=amd64
+  ovn-central:
+    charm: ovn-central
+    channel: 23.09/stable
+    num_units: 3
+    to:
+    - lxd:0
+    - lxd:1
+    - lxd:2
+    constraints: arch=amd64
+  ovn-chassis:
+    charm: ovn-chassis
+    channel: 23.09/stable
+    options:
+      bridge-interface-mappings: br-ex:enp1s0
+      ovn-bridge-mappings: physnet1:br-ex
+  placement:
+    charm: placement
+    channel: 2023.2/stable
+    num_units: 1
+    to:
+    - lxd:3
+    constraints: arch=amd64
+  placement-mysql-router:
+    charm: mysql-router
+    channel: 8.0/stable
+  rabbitmq-server:
+    charm: rabbitmq-server
+    channel: 3.9/stable
+    num_units: 1
+    to:
+    - lxd:2
+    constraints: arch=amd64
+  vault:
+    charm: vault
+    channel: 1.8/stable
+    resources:
+      core: 0
+      vault: 0
+    num_units: 1
+    to:
+    - lxd:3
+    constraints: arch=amd64
+  vault-mysql-router:
+    charm: mysql-router
+    channel: 8.0/stable
+machines:
+  "0":
+    constraints: arch=amd64 tags=compute
+  "1":
+    constraints: arch=amd64 tags=compute
+  "2":
+    constraints: arch=amd64 tags=compute
+  "3":
+    constraints: arch=amd64 tags=compute
+relations:
+- - vault-mysql-router:db-router
+  - mysql-innodb-cluster:db-router
+- - vault-mysql-router:shared-db
+  - vault:shared-db
+- - mysql-innodb-cluster:certificates
+  - vault:certificates
+- - neutron-api-plugin-ovn:neutron-plugin
+  - neutron-api:neutron-plugin-api-subordinate
+- - neutron-api-plugin-ovn:ovsdb-cms
+  - ovn-central:ovsdb-cms
+- - ovn-chassis:ovsdb
+  - ovn-central:ovsdb
+- - ovn-chassis:nova-compute
+  - nova-compute:neutron-plugin
+- - neutron-api:certificates
+  - vault:certificates
+- - neutron-api-plugin-ovn:certificates
+  - vault:certificates
+- - ovn-central:certificates
+  - vault:certificates
+- - ovn-chassis:certificates
+  - vault:certificates
+- - neutron-api-mysql-router:db-router
+  - mysql-innodb-cluster:db-router
+- - neutron-api-mysql-router:shared-db
+  - neutron-api:shared-db
+- - keystone-mysql-router:db-router
+  - mysql-innodb-cluster:db-router
+- - keystone-mysql-router:shared-db
+  - keystone:shared-db
+- - keystone:identity-service
+  - neutron-api:identity-service
+- - keystone:certificates
+  - vault:certificates
+- - rabbitmq-server:amqp
+  - neutron-api:amqp
+- - rabbitmq-server:amqp
+  - nova-compute:amqp
+- - ncc-mysql-router:db-router
+  - mysql-innodb-cluster:db-router
+- - ncc-mysql-router:shared-db
+  - nova-cloud-controller:shared-db
+- - nova-cloud-controller:identity-service
+  - keystone:identity-service
+- - nova-cloud-controller:amqp
+  - rabbitmq-server:amqp
+- - nova-cloud-controller:neutron-api
+  - neutron-api:neutron-api
+- - nova-cloud-controller:cloud-compute
+  - nova-compute:cloud-compute
+- - nova-cloud-controller:certificates
+  - vault:certificates
+- - placement-mysql-router:db-router
+  - mysql-innodb-cluster:db-router
+- - placement-mysql-router:shared-db
+  - placement:shared-db
+- - placement:identity-service
+  - keystone:identity-service
+- - placement:placement
+  - nova-cloud-controller:placement
+- - placement:certificates
+  - vault:certificates
+- - dashboard-mysql-router:db-router
+  - mysql-innodb-cluster:db-router
+- - dashboard-mysql-router:shared-db
+  - openstack-dashboard:shared-db
+- - openstack-dashboard:identity-service
+  - keystone:identity-service
+- - openstack-dashboard:certificates
+  - vault:certificates
+- - glance-mysql-router:db-router
+  - mysql-innodb-cluster:db-router
+- - glance-mysql-router:shared-db
+  - glance:shared-db
+- - glance:image-service
+  - nova-cloud-controller:image-service
+- - glance:image-service
+  - nova-compute:image-service
+- - glance:identity-service
+  - keystone:identity-service
+- - glance:certificates
+  - vault:certificates
+- - ceph-mon:osd
+  - ceph-osd:mon
+- - ceph-mon:client
+  - nova-compute:ceph
+- - ceph-mon:client
+  - glance:ceph
+- - cinder-mysql-router:db-router
+  - mysql-innodb-cluster:db-router
+- - cinder-mysql-router:shared-db
+  - cinder:shared-db
+- - cinder:cinder-volume-service
+  - nova-cloud-controller:cinder-volume-service
+- - cinder:identity-service
+  - keystone:identity-service
+- - cinder:amqp
+  - rabbitmq-server:amqp
+- - cinder:image-service
+  - glance:image-service
+- - cinder:certificates
+  - vault:certificates
+- - cinder-ceph:storage-backend
+  - cinder:storage-backend
+- - cinder-ceph:ceph
+  - ceph-mon:client
+- - cinder-ceph:ceph-access
+  - nova-compute:ceph-access
+- - ceph-radosgw:mon
+  - ceph-mon:radosgw
