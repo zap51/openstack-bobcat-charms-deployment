@@ -41,8 +41,6 @@ applications:
       block-device: None
       glance-api-version: 2
     constraints: arch=amd64
-    storage:
-      block-devices: loop,10240M
   cinder-ceph:
     charm: cinder-ceph
     channel: 2023.2/stable
@@ -126,8 +124,6 @@ applications:
       migration-auth-type: ssh
       virt-type: qemu
     constraints: arch=amd64
-    storage:
-      ephemeral-device: loop,10240M
   openstack-dashboard:
     charm: openstack-dashboard
     channel: 2023.2/stable
