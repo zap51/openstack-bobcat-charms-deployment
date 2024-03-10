@@ -26,6 +26,12 @@ applications:
     options:
       osd-devices: /dev/vdb /dev/vdc
     constraints: arch=amd64 tags=compute
+    storage:
+      bluestore-db: loop,1024M
+      bluestore-wal: loop,1024M
+      cache-devices: loop,10240M
+      osd-devices: loop,1024M
+      osd-journals: loop,1024M
   ceph-radosgw:
     charm: ceph-radosgw
     channel: reef/stable
@@ -136,6 +142,7 @@ applications:
       config-flags: default_ephemeral_format=ext4
       enable-live-migration: true
       enable-resize: true
+      libvirt-image-backend: rbd
       migration-auth-type: ssh
       virt-type: qemu
     constraints: arch=amd64
